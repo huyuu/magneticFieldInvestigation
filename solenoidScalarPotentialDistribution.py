@@ -91,17 +91,17 @@ if __name__ == '__main__':
             ms_z[i, j] = bp[0]
 
     _los, _zs = nu.meshgrid(los, zs, indexing='ij')
-    # pl.contourf(_los/coilRadius, _zs, omegas, levels=50)
-    # pl.contourf(_los/coilRadius, _zs, aphis, levels=50)
-    # pl.colorbar()
-    # pl.quiver(_los/coilRadius, _zs, bs_lo, bs_z)
-    # pl.show()
-    #
-    # pl.contourf(_los/coilRadius, _zs, omegas, levels=100)
-    # pl.colorbar()
-    # pl.quiver(_los/coilRadius, _zs, ms_lo, ms_z)
-    # pl.show()
-    #
-    # pl.contourf(_los/coilRadius, _zs, bs_z, levels=50)
-    # pl.colorbar()
-    # pl.show()
+    pl.contourf(_los/coilRadius, _zs, omegas, levels=50)
+    pl.contourf(_los/coilRadius, _zs, aphis, levels=50)
+    pl.colorbar()
+    pl.quiver(_los/coilRadius, _zs, bs_lo, bs_z)
+    pl.show()
+
+    pl.contourf(_los/coilRadius, _zs, omegas, levels=100)
+    pl.colorbar()
+    pl.quiver(_los/coilRadius, _zs, ms_lo, ms_z)
+    pl.show()
+
+    pl.contourf(_los/coilRadius, _zs, bs_z, levels=50)
+    pl.colorbar()
+    pl.show()

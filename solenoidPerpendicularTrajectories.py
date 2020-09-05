@@ -33,7 +33,7 @@ class TrajectoryGenerator():
         self.coilRadius = 1.5e-2
         self.Z0 = self.coilRadius
         self.deltaT = 1e-5
-        N = 21
+        N = 3
         conductorWidth = 4e-3
         if N % 2 == 1:
             self.coilZs = nu.linspace(-(N//2) * conductorWidth, (N//2) * conductorWidth, N)
@@ -138,7 +138,7 @@ def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z):
         for coilZ in coilZs:
             bp_lo, bp_z = BpFromVectorPotential(I, x[0], x[1], coilRadius, coilZ)
             bp += nu.array([bp_lo, bp_z])
-        m = nu.array([-bp[1], bp[0]])
+        m = nu.array([-bp[1], bp[0]]) / sqrt(bp[0]**2 + bp[1]**2)
         x += m * deltaT
         t += deltaT
     return nu.array(trajectory)

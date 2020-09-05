@@ -116,6 +116,7 @@ class TrajectoryGenerator():
             if letter == 'q':
                 for worker in workerTank:
                     worker.terminate()
+                    worker.close()
                 break
             else:
                 continue

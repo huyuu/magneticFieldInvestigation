@@ -40,7 +40,8 @@ class TrajectoryGenerator():
         else:
             self.coilZs = nu.linspace( -(N//2 - 0.5) * conductorWidth, (N//2 - 0.5) * conductorWidth, N)
         # initial points [x0]
-        self.z0s = nu.linspace(-1.5*self.Z0, 1.5*self.Z0, 21)
+        initPoints = 21
+        self.z0s = nu.linspace(-1.5*self.Z0, 1.5*self.Z0, initPoints)
 
 
     def run(self):
@@ -104,7 +105,7 @@ class TrajectoryGenerator():
         pl.show()
 
 
-    def runAsSlaveOnCluster(self, workerAmount=min(int(mp.cpu_count()*0.85), 50), rawQueue='rawQueue', cookedQueue='cookedQueue'):
+    def runAsSlaveOnCluster(self, workerAmount=min(int(mp.cpu_count()*0.75), 50), rawQueue='rawQueue', cookedQueue='cookedQueue'):
         workerTank = []
         print(f'Slave node starts with {workerAmount} workers.')
         for _ in range(workerAmount):

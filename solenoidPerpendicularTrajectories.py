@@ -73,7 +73,7 @@ class TrajectoryGenerator():
             master.lpush('rawQueue', pickle.dumps((self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, 0.9*self.coilRadius, z0)))
         # collect calculated trajectories
         trajectories = []
-        for _ in range(len(z0s)):
+        for _ in range(len(self.z0s)):
             _, binaryTrajectory = master.brpop('cookedQueue')
             trajectories.append(pickle.loads(trajectory))
         _end = dt.datetime.now()

@@ -70,12 +70,12 @@ class TrajectoryGenerator():
         # start main calculation
         # generate all initial points [x0] and push them to raw queue.
         for z0 in self.z0s:
-            master.lpush('rawQueue', (self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, 0.9*self.coilRadius, z0))
+            master.lpush('rawQueue', pickle.dumps((self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, 0.9*self.coilRadius, z0)))
         # collect calculated trajectories
         trajectories = []
         for _ in range(len(z0s)):
-            _, trajectory = master.brpop('cookedQueue')
-            trajectories.append(trajectory)
+            _, binaryTrajectory = master.brpop('cookedQueue')
+            trajectories.append(pickle.loads(trajectory))
         _end = dt.datetime.now()
         print('All {} trajectories generated. (cost {:.3g} hours)'.format(len(z0s), (_end-_start).total_seconds()/3600.0))
         # plot results
@@ -113,9 +113,11 @@ class TrajectoryGenerator():
 def computeTrajectoryInCluster(rawQueue, cookedQueue, hostIP, hostPort):
     slave = redis.Redis(host=hostIP, port=hostPort)
     while True:
-        _, args = slave.brpop(rawQueue)
+        _, binaryArgs = slave.brpop(rawQueue)
+        args = pickle.loads(binaryArgs)
         trajectory = drawTrajectory(*args)
-        slave.lpush(cookedQueue, trajectory)
+        binaryTrajectory = pickle.dumps(trajectory)
+        slave.lpush(cookedQueue, binaryTrajectory)
 
 
 def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z):

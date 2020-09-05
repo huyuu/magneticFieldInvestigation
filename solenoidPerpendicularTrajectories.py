@@ -4,6 +4,7 @@ from matplotlib import pyplot as pl
 from matplotlib import cm
 from mpl_toolkits import mplot3d
 import multiprocessing as mp
+import pickle
 from numpy import abs, sqrt, cos, sin, pi, arccos
 
 from scipy.integrate import quadrature, dblquad, tplquad
@@ -62,11 +63,13 @@ if __name__ == '__main__':
 
     # compute trajectories
     args = []
-    for z0 in nu.linspace(-Z0, Z0, 20):
+    for z0 in nu.linspace(-Z0, Z0, 15):
         args.append((I, coilRadius, Z0, deltaT, 0.9*coilRadius, z0))
     trajectories = []
     with mp.Pool(processes=min(mp.cpu_count()-1, 50)) as pool:
         trajectories = pool.starmap(drawTrajectory, args)
+    with open('trajectories.pickle', 'wb') as file:
+        pickle.dump(trajectories, file)
     # plot bs
     _los, _zs = nu.meshgrid(los, zs, indexing='ij')
     pl.quiver(_los/coilRadius, _zs/Z0, bs_lo, bs_z)

@@ -26,7 +26,8 @@ def drawTrajectory(I, coilRadius, Z0, deltaT, x0_lo, x0_z):
     trajectory = []
     t = 0
     while 0.2 <= x[0]/coilRadius <= 0.9 and -2 <= x[1]/Z0 <= 2:
-        trajectory.append([x[0]/coilRadius, x[1]/Z0])
+        if sqrt(x[0]**2 + x[1]**2) >= coilRadius/100:
+            trajectory.append([x[0]/coilRadius, x[1]/Z0])
         bp = BpFromVectorPotential(I, x[0], x[1], coilRadius)
         m = nu.array([-bp[1], bp[0]])
         x += m * deltaT
@@ -42,7 +43,7 @@ if __name__ == '__main__':
     points = 100
     Z0 = coilRadius
     I = 1.0
-    deltaT = 1e-4
+    deltaT = 1e-5
 
     los = nu.linspace(0.2*coilRadius, 0.9*coilRadius, points)
     zs = nu.linspace(-2*Z0, 2*Z0, points)

@@ -25,7 +25,7 @@ mu0 = 4*nu.pi*1e-7
 
 class TrajectoryGenerator():
     def __init__(self):
-        self.hostIP = '10.32.247.48'
+        self.hostIP = '10.32.247.50'
         self.hostPort=6379
 
         self.I = 1.0

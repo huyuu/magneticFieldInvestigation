@@ -78,6 +78,9 @@ class TrajectoryGenerator():
             trajectories.append(pickle.loads(binaryTrajectory))
         _end = dt.datetime.now()
         print('All {} trajectories generated. (cost {:.3g} hours)'.format(len(self.z0s), (_end-_start).total_seconds()/3600.0))
+        # save results
+        with open('trajectories.pickle', 'wb') as file:
+            pickle.dump(trajectories, file)
         # plot results
         # plot bs
         points = 100
@@ -101,7 +104,7 @@ class TrajectoryGenerator():
         pl.show()
 
 
-    def runAsSlaveOnCluster(self, workerAmount=min(mp.cpu_count()*3//4, 50), rawQueue='rawQueue', cookedQueue='cookedQueue'):
+    def runAsSlaveOnCluster(self, workerAmount=min(int(mp.cpu_count()*0.85), 50), rawQueue='rawQueue', cookedQueue='cookedQueue'):
         workerTank = []
         print(f'Slave node starts with {workerAmount} workers.')
         for _ in range(workerAmount):

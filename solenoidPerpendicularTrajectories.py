@@ -50,10 +50,10 @@ class TrajectoryGenerator():
         if modeString.lower() == 'master' or modeString.lower() == 'm':
             self.runAsMasterOnCluster()
         elif modeString.lower() == 'slave' or modeString.lower() == 's':
-            if sys.argv[2] != None:
-                self.runAsSlaveOnCluster(workerAmount=sys.argv[2])
-            else:
+            if len(sys.argv) <= 2:
                 self.runAsSlaveOnCluster()
+            else:
+                self.runAsSlaveOnCluster(workerAmount=sys.argv[2])
 
 
     def runAsMasterOnCluster(self):
@@ -100,7 +100,7 @@ class TrajectoryGenerator():
         pl.show()
 
 
-    def runAsSlaveOnCluster(self, workerAmount=min(mp.cpu_count()//2, 55), rawQueue='rawQueue', cookedQueue='cookedQueue'):
+    def runAsSlaveOnCluster(self, workerAmount=min(mp.cpu_count()//2, 50), rawQueue='rawQueue', cookedQueue='cookedQueue'):
         workerTank = []
         print(f'Slave node starts with {workerAmount} workers.')
         for _ in range(workerAmount):

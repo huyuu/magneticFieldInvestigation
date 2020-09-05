@@ -75,7 +75,7 @@ class TrajectoryGenerator():
         trajectories = []
         for _ in range(len(self.z0s)):
             _, binaryTrajectory = master.brpop('cookedQueue')
-            trajectories.append(pickle.loads(trajectory))
+            trajectories.append(pickle.loads(binaryTrajectory))
         _end = dt.datetime.now()
         print('All {} trajectories generated. (cost {:.3g} hours)'.format(len(z0s), (_end-_start).total_seconds()/3600.0))
         # plot results

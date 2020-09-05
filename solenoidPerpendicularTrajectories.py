@@ -47,9 +47,9 @@ class TrajectoryGenerator():
         # get mode string
         modeString = sys.argv[1]
         assert modeString != None
-        if lowercase(modeString) == 'master' or lowercase(modeString) == 'm':
+        if modeString.lower() == 'master' or modeString.lower() == 'm':
             self.runAsMasterOnCluster()
-        elif lowercase(modeString) == 'slave' or lowercase(modeString) == 's':
+        elif modeString.lower() == 'slave' or modeString.lower() == 's':
             if sys.argv[2] != None:
                 self.runAsSlaveOnCluster(workerAmount=sys.argv[2])
             else:

@@ -7,6 +7,7 @@ import multiprocessing as mp
 import pickle
 import datetime as dt
 import redis
+import sys
 from numpy import abs, sqrt, cos, sin, pi, arccos
 
 from scipy.integrate import quadrature, dblquad, tplquad
@@ -44,13 +45,13 @@ class TrajectoryGenerator():
 
     def run(self):
         # get mode string
-        modeString = sys.args[1]
+        modeString = sys.argv[1]
         assert modeString != None
         if lowercase(modeString) == 'master' or lowercase(modeString) == 'm':
             self.runAsMasterOnCluster()
         elif lowercase(modeString) == 'slave' or lowercase(modeString) == 's':
-            if sys.args[2] != None:
-                self.runAsSlaveOnCluster(workerAmount=sys.args[2])
+            if sys.argv[2] != None:
+                self.runAsSlaveOnCluster(workerAmount=sys.argv[2])
             else:
                 self.runAsSlaveOnCluster()
 

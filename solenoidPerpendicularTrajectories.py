@@ -104,7 +104,7 @@ class TrajectoryGenerator():
             for trajectory in trajectories:
                 pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='gray')
             pl.show()
-        except KeyboardInterrupt:
+        except KeyboardInterrupt as e:
             shouldTerminateWorkers = input('Should terminate all workers? [y/n]: ')
             if shouldTerminateWorkers.lower() == 'y':
                 print('Terminating remote workers ...')
@@ -113,6 +113,7 @@ class TrajectoryGenerator():
                 while master.rpop('cookedQueue') != None:
                     pass
             else:
+                print('Cleaning queues ...')
                 # clean queues
                 while master.rpop('rawQueue') != None:
                     pass

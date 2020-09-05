@@ -111,8 +111,14 @@ class TrajectoryGenerator():
         for _ in range(workerAmount):
             worker = mp.Process(target=computeTrajectoryInCluster, args=(rawQueue, cookedQueue, self.hostIP, self.hostPort))
             worker.start()
-        for worker in workerTank:
-            worker.join()
+        while True:
+            letter = input("(enter 'q' to quit.)")
+            if letter == 'q':
+                for worker in workerTank:
+                    worker.terminate()
+                break
+            else:
+                continue
 
 
 def computeTrajectoryInCluster(rawQueue, cookedQueue, hostIP, hostPort):

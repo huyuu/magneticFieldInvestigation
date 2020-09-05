@@ -54,7 +54,7 @@ class TrajectoryGenerator():
             if len(sys.argv) <= 2:
                 self.runAsSlaveOnCluster()
             else:
-                self.runAsSlaveOnCluster(workerAmount=sys.argv[2])
+                self.runAsSlaveOnCluster(workerAmount=int(sys.argv[2]))
 
 
     def runAsMasterOnCluster(self):

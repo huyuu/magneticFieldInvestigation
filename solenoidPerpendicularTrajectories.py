@@ -38,6 +38,8 @@ class TrajectoryGenerator():
             self.coilZs = nu.linspace(-(N//2) * conductorWidth, (N//2) * conductorWidth, N)
         else:
             self.coilZs = nu.linspace( -(N//2 - 0.5) * conductorWidth, (N//2 - 0.5) * conductorWidth, N)
+        # initial points [x0]
+        self.z0s = nu.linspace(-1.5*self.Z0, 1.5*self.Z0, 21)
 
 
     def run(self):
@@ -63,8 +65,7 @@ class TrajectoryGenerator():
         _start = dt.datetime.now()
         # start main calculation
         # generate all initial points [x0] and push them to raw queue.
-        z0s = nu.linspace(-1.5*Z0, 1.5*Z0, 21)
-        for z0 in z0s:
+        for z0 in self.z0s:
             master.lpush('rawQueue', (self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, 0.9*self.coilRadius, z0))
         # collect calculated trajectories
         trajectories = []

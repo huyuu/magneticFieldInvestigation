@@ -77,23 +77,24 @@ class TrajectoryGenerator():
             _, binaryTrajectory = master.brpop('cookedQueue')
             trajectories.append(pickle.loads(binaryTrajectory))
         _end = dt.datetime.now()
-        print('All {} trajectories generated. (cost {:.3g} hours)'.format(len(z0s), (_end-_start).total_seconds()/3600.0))
+        print('All {} trajectories generated. (cost {:.3g} hours)'.format(len(self.z0s), (_end-_start).total_seconds()/3600.0))
         # plot results
         # plot bs
-        los = nu.linspace(0.2*coilRadius, 0.9*coilRadius, points)
-        zs = nu.linspace(-2*Z0, 2*Z0, points)
+        points = 100
+        los = nu.linspace(0.2*self.coilRadius, 0.9*self.coilRadius, points)
+        zs = nu.linspace(-2*self.Z0, 2*self.Z0, points)
         aphis = nu.zeros((points, points))
         bs_lo = nu.zeros((points, points))
         bs_z = nu.zeros((points, points))
         for i, lo in enumerate(los):
             for j, z in enumerate(zs):
                 # bp = BpFromScalarPotential(I, r, theta, coilRadius)
-                aphis[i, j] = Aphi(I, lo, z, coilRadius)
-                bp = BpFromVectorPotential(I, lo, z, coilRadius)
+                aphis[i, j] = Aphi(self.I, lo, z, self.coilRadius)
+                bp = BpFromVectorPotential(self.I, lo, z, self.coilRadius)
                 bs_lo[i, j] = bp[0]
                 bs_z[i, j] = bp[1]
         _los, _zs = nu.meshgrid(los, zs, indexing='ij')
-        pl.quiver(_los/coilRadius, _zs/Z0, bs_lo, bs_z)
+        pl.quiver(_los/self.coilRadius, _zs/self.Z0, bs_lo, bs_z)
         # plot trajectories
         for trajectory in trajectories:
             pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='gray')

@@ -42,7 +42,7 @@ if __name__ == '__main__':
     points = 100
     Z0 = coilRadius
     I = 1.0
-    deltaT = 1e-5
+    deltaT = 1e-4
 
     los = nu.linspace(0.2*coilRadius, 0.9*coilRadius, points)
     zs = nu.linspace(-2*Z0, 2*Z0, points)
@@ -63,13 +63,13 @@ if __name__ == '__main__':
 
     # compute trajectories
     args = []
-    for z0 in nu.linspace(-Z0, Z0, 15):
+    for z0 in nu.linspace(-1.5*Z0, 1.5*Z0, 21):
         args.append((I, coilRadius, Z0, deltaT, 0.9*coilRadius, z0))
     trajectories = []
     with mp.Pool(processes=min(mp.cpu_count()-1, 50)) as pool:
         trajectories = pool.starmap(drawTrajectory, args)
-    with open('trajectories.pickle', 'wb') as file:
-        pickle.dump(trajectories, file)
+    # with open('trajectories.pickle', 'wb') as file:
+    #     pickle.dump(trajectories, file)
     # plot bs
     _los, _zs = nu.meshgrid(los, zs, indexing='ij')
     pl.quiver(_los/coilRadius, _zs/Z0, bs_lo, bs_z)

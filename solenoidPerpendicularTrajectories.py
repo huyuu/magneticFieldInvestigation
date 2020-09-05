@@ -58,51 +58,69 @@ class TrajectoryGenerator():
 
 
     def runAsMasterOnCluster(self):
-        master = redis.Redis(host=self.hostIP, port=self.hostPort)
-        print('Master node starts.')
-        # clean queues
-        while master.rpop('rawQueue') != None:
-            pass
-        while master.rpop('cookedQueue') != None:
-            pass
-        print('Queues cleaned-up.')
-        print('Start main calculation')
-        _start = dt.datetime.now()
-        # start main calculation
-        # generate all initial points [x0] and push them to raw queue.
-        for z0 in self.z0s:
-            master.lpush('rawQueue', pickle.dumps((self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, 0.9*self.coilRadius, z0)))
-        # collect calculated trajectories
-        trajectories = []
-        for _ in range(len(self.z0s)):
-            _, binaryTrajectory = master.brpop('cookedQueue')
-            trajectories.append(pickle.loads(binaryTrajectory))
-        _end = dt.datetime.now()
-        print('All {} trajectories generated. (cost {:.3g} hours)'.format(len(self.z0s), (_end-_start).total_seconds()/3600.0))
-        # save results
-        with open('trajectories.pickle', 'wb') as file:
-            pickle.dump(trajectories, file)
-        # plot results
-        # plot bs
-        points = 100
-        los = nu.linspace(0.2*self.coilRadius, 0.9*self.coilRadius, points)
-        zs = nu.linspace(-2*self.Z0, 2*self.Z0, points)
-        aphis = nu.zeros((points, points))
-        bs_lo = nu.zeros((points, points))
-        bs_z = nu.zeros((points, points))
-        for i, lo in enumerate(los):
-            for j, z in enumerate(zs):
-                # bp = BpFromScalarPotential(I, r, theta, coilRadius)
-                aphis[i, j] = Aphi(self.I, lo, z, self.coilRadius)
-                bp = BpFromVectorPotential(self.I, lo, z, self.coilRadius)
-                bs_lo[i, j] = bp[0]
-                bs_z[i, j] = bp[1]
-        _los, _zs = nu.meshgrid(los, zs, indexing='ij')
-        pl.quiver(_los/self.coilRadius, _zs/self.Z0, bs_lo, bs_z)
-        # plot trajectories
-        for trajectory in trajectories:
-            pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='gray')
-        pl.show()
+        try:
+            master = redis.Redis(host=self.hostIP, port=self.hostPort)
+            print('Master node starts.')
+            # clean queues
+            while master.rpop('rawQueue') != None:
+                pass
+            while master.rpop('cookedQueue') != None:
+                pass
+            print('Queues cleaned-up.')
+            print('Start main calculation')
+            _start = dt.datetime.now()
+            # start main calculation
+            # generate all initial points [x0] and push them to raw queue.
+            for z0 in self.z0s:
+                master.lpush('rawQueue', pickle.dumps((self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, 0.9*self.coilRadius, z0, False)))
+            # collect calculated trajectories
+            trajectories = []
+            for _ in range(len(self.z0s)):
+                _, binaryTrajectory = master.brpop('cookedQueue')
+                trajectories.append(pickle.loads(binaryTrajectory))
+            _end = dt.datetime.now()
+            print('All {} trajectories generated. (cost {:.3g} hours)'.format(len(self.z0s), (_end-_start).total_seconds()/3600.0))
+            # save results
+            with open('trajectories.pickle', 'wb') as file:
+                pickle.dump(trajectories, file)
+            # plot results
+            # plot bs
+            points = 100
+            los = nu.linspace(0.2*self.coilRadius, 0.9*self.coilRadius, points)
+            zs = nu.linspace(-2*self.Z0, 2*self.Z0, points)
+            aphis = nu.zeros((points, points))
+            bs_lo = nu.zeros((points, points))
+            bs_z = nu.zeros((points, points))
+            for i, lo in enumerate(los):
+                for j, z in enumerate(zs):
+                    # bp = BpFromScalarPotential(I, r, theta, coilRadius)
+                    aphis[i, j] = Aphi(self.I, lo, z, self.coilRadius)
+                    bp = BpFromVectorPotential(self.I, lo, z, self.coilRadius)
+                    bs_lo[i, j] = bp[0]
+                    bs_z[i, j] = bp[1]
+            _los, _zs = nu.meshgrid(los, zs, indexing='ij')
+            pl.quiver(_los/self.coilRadius, _zs/self.Z0, bs_lo, bs_z)
+            # plot trajectories
+            for trajectory in trajectories:
+                pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='gray')
+            pl.show()
+        except KeyboardInterrupt:
+            shouldTerminateWorkers = input('Should terminate all workers? [y/n]: ')
+            if shouldTerminateWorkers.lower() == 'y':
+                print('Terminating remote workers ...')
+                for _ in range(40):
+                    master.lpush('rawQueue', pickle.dumps((self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, 0.9*self.coilRadius, z0, True)))
+                while master.rpop('cookedQueue') != None:
+                    pass
+            else:
+                # clean queues
+                while master.rpop('rawQueue') != None:
+                    pass
+                while master.rpop('cookedQueue') != None:
+                    pass
+        finally:
+            print('Successfully shutdown master program, bye-bye!')
+            return
 
 
     def runAsSlaveOnCluster(self, workerAmount=min(int(mp.cpu_count()*0.75), 50), rawQueue='rawQueue', cookedQueue='cookedQueue'):
@@ -111,15 +129,8 @@ class TrajectoryGenerator():
         for _ in range(workerAmount):
             worker = mp.Process(target=computeTrajectoryInCluster, args=(rawQueue, cookedQueue, self.hostIP, self.hostPort))
             worker.start()
-        while True:
-            letter = input("(enter 'q' to quit.)")
-            if letter == 'q':
-                for worker in workerTank:
-                    worker.terminate()
-                    worker.close()
-                break
-            else:
-                continue
+        for worker in workerTank:
+            worker.join()
 
 
 def computeTrajectoryInCluster(rawQueue, cookedQueue, hostIP, hostPort):
@@ -127,7 +138,10 @@ def computeTrajectoryInCluster(rawQueue, cookedQueue, hostIP, hostPort):
     while True:
         _, binaryArgs = slave.brpop(rawQueue)
         args = pickle.loads(binaryArgs)
-        trajectory = drawTrajectory(*args)
+        I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z, shouldStop = args
+        if shouldStop == True:
+            break
+        trajectory = drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z)
         binaryTrajectory = pickle.dumps(trajectory)
         slave.lpush(cookedQueue, binaryTrajectory)
 

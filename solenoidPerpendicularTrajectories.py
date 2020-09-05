@@ -41,7 +41,7 @@ if __name__ == '__main__':
     points = 100
     Z0 = coilRadius
     I = 1.0
-    deltaT = 1e-2
+    deltaT = 1e-6
 
     los = nu.linspace(0.2*coilRadius, 0.9*coilRadius, points)
     zs = nu.linspace(-2*Z0, 2*Z0, points)
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     # compute trajectories
     args = []
-    for z0 in [-Z0, 0, Z0]:
+    for z0 in nu.linspace(-Z0, Z0, 20):
         args.append((I, coilRadius, Z0, deltaT, 0.9*coilRadius, z0))
     trajectories = []
     with mp.Pool(processes=min(mp.cpu_count()-1, 50)) as pool:

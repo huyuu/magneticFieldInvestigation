@@ -13,7 +13,6 @@ from scipy.special import ellipk, ellipe, ellipkm1
 # Constants
 
 mu0 = 4*nu.pi*1e-7
-I = 100
 
 
 # Model

@@ -35,8 +35,9 @@ def Aphi(I, lo, z, coilRadius):
     return Aphi
 
 
-def BpFromVectorPotential(I, lo, z, coilRadius):
+def BpFromVectorPotential(I, lo, z, coilRadius, coilZ=0):
     a = coilRadius
+    z = z - coilZ
     beta = (a+lo)**2+z**2
     k = sqrt(4*a*lo/beta)
     squaredK = k**2

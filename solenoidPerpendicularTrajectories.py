@@ -33,7 +33,7 @@ class TrajectoryGenerator():
         self.coilRadius = 1.5e-2
         self.Z0 = self.coilRadius
         self.deltaT = 1e-5
-        N = 3
+        N = 11
         conductorWidth = 4e-3
         if N % 2 == 1:
             self.coilZs = nu.linspace(-(N//2) * conductorWidth, (N//2) * conductorWidth, N)
@@ -48,13 +48,17 @@ class TrajectoryGenerator():
         # get mode string
         modeString = sys.argv[1]
         assert modeString != None
+        # run as master
         if modeString.lower() == 'master' or modeString.lower() == 'm':
             try:
                 self.runAsMasterOnCluster()
             except KeyboardInterrupt as e:
+                pass
+            finally:
                 shouldTerminateWorkers = input('Should terminate all workers? [y/n]: ')
                 if shouldTerminateWorkers.lower() == 'y':
                     print('Terminating remote workers ...')
+                    master = redis.Redis(host=self.hostIP, port=self.hostPort)
                     master.set('terminateFlag', 'True')
                     while master.rpop('cookedQueue') != None:
                         pass
@@ -65,9 +69,8 @@ class TrajectoryGenerator():
                         pass
                     while master.rpop('cookedQueue') != None:
                         pass
-            finally:
                 print('Successfully shutdown master program, bye-bye!')
-
+        # run as slave
         elif modeString.lower() == 'slave' or modeString.lower() == 's':
             if len(sys.argv) <= 2:
                 self.runAsSlaveOnCluster()
@@ -137,8 +140,8 @@ class TrajectoryGenerator():
             if x.lower() == 'q':
                 shouldStop.set()
                 break
-            else:
-                continue
+        for worker in workerTank:
+            worker.join()
 
 
 def computeTrajectoryInCluster(rawQueue, cookedQueue, hostIP, hostPort, shouldStop):

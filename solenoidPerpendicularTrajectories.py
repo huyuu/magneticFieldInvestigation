@@ -126,7 +126,7 @@ class TrajectoryGenerator():
         pl.quiver(_los/self.coilRadius, _zs/self.Z0, bs_lo, bs_z)
         # plot trajectories
         for trajectory in trajectories:
-            pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='gray', linewidth=3)
+            pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='C0', linewidth=3)
         pl.show()
 
 
@@ -194,63 +194,63 @@ def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z):
 
 # Main
 
-# if __name__ == '__main__':
-#     mp.freeze_support()
-#     trajectoryGenerator = TrajectoryGenerator()
-#     trajectoryGenerator.run()
-
-
 if __name__ == '__main__':
-    coilRadius = 1.5e-2
-    coilZ = 0
-    points = 100
-    N = 3
-    assert N % 2 == 1
-    # Z0 = coilRadius
-    I = 1.0
-    deltaT = 1 * 1e-5
-    conductorWidth = 4e-3
-    Z0 = N//2 * conductorWidth
-    coilZs = nu.linspace(-Z0, Z0, N)
+    mp.freeze_support()
+    trajectoryGenerator = TrajectoryGenerator()
+    trajectoryGenerator.run()
 
-    los = nu.linspace(0.2*coilRadius, 0.9*coilRadius, points)
-    zs = nu.linspace(0, 1.5*Z0, points)
-    omegas = nu.zeros((points, points))
-    aphis = nu.zeros((points, points))
-    bs_lo = nu.zeros((points, points))
-    bs_z = nu.zeros((points, points))
-    ms_lo = nu.zeros((points, points))
-    ms_z = nu.zeros((points, points))
-    for i, lo in enumerate(los):
-        for j, z in enumerate(zs):
-            r = sqrt(lo**2 + z**2)
-            theta = arccos(z/r)
-            omegas[i, j] = Omega(I, r, theta, coilRadius)
-            # bp = BpFromScalarPotential(I, r, theta, coilRadius)
-            aphis[i, j] = Aphi(I, lo, z, coilRadius)
-            bp = nu.zeros(2)
-            for coilZ in coilZs:
-                bp += BpFromVectorPotential(I, lo, z, coilRadius, coilZ)
-            bs_lo[i, j] = bp[0]
-            bs_z[i, j] = bp[1]
-            ms_lo[i, j] = -bp[1]
-            ms_z[i, j] = bp[0]
-    # compute trajectories
-    args = []
-    # for z0 in nu.linspace(-1.5*Z0, 1.5*Z0, 21):
-    for z0 in [0.6*Z0, 0.8*Z0, 1.0*Z0, 1.2*Z0, 1.4*Z0]:
-        args.append((I, coilRadius, coilZs, Z0, deltaT, 0.9*coilRadius, z0))
-    trajectories = []
-    with mp.Pool(processes=min(mp.cpu_count()-1, 50)) as pool:
-        trajectories = pool.starmap(drawTrajectory, args)
-    # with open('trajectories.pickle', 'wb') as file:
-    #     pickle.dump(trajectories, file)
-    # plot bs
-    _los, _zs = nu.meshgrid(los, zs, indexing='ij')
-    pl.quiver(_los/coilRadius, _zs/Z0, bs_lo, bs_z)
-    # pl.quiver(_los/coilRadius, _zs/Z0, ms_lo, ms_z)
-    # plot trajectories
-    for trajectory in trajectories:
-        pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='C0', linewidth=3)
-        # pl.scatter(trajectory[:, 0], trajectory[:, 1], c='gray')
-    pl.show()
+
+# if __name__ == '__main__':
+#     coilRadius = 1.5e-2
+#     coilZ = 0
+#     points = 100
+#     N = 3
+#     assert N % 2 == 1
+#     # Z0 = coilRadius
+#     I = 1.0
+#     deltaT = 1 * 1e-5
+#     conductorWidth = 4e-3
+#     Z0 = N//2 * conductorWidth
+#     coilZs = nu.linspace(-Z0, Z0, N)
+#
+#     los = nu.linspace(0.2*coilRadius, 0.9*coilRadius, points)
+#     zs = nu.linspace(0, 1.5*Z0, points)
+#     omegas = nu.zeros((points, points))
+#     aphis = nu.zeros((points, points))
+#     bs_lo = nu.zeros((points, points))
+#     bs_z = nu.zeros((points, points))
+#     ms_lo = nu.zeros((points, points))
+#     ms_z = nu.zeros((points, points))
+#     for i, lo in enumerate(los):
+#         for j, z in enumerate(zs):
+#             r = sqrt(lo**2 + z**2)
+#             theta = arccos(z/r)
+#             omegas[i, j] = Omega(I, r, theta, coilRadius)
+#             # bp = BpFromScalarPotential(I, r, theta, coilRadius)
+#             aphis[i, j] = Aphi(I, lo, z, coilRadius)
+#             bp = nu.zeros(2)
+#             for coilZ in coilZs:
+#                 bp += BpFromVectorPotential(I, lo, z, coilRadius, coilZ)
+#             bs_lo[i, j] = bp[0]
+#             bs_z[i, j] = bp[1]
+#             ms_lo[i, j] = -bp[1]
+#             ms_z[i, j] = bp[0]
+#     # compute trajectories
+#     args = []
+#     # for z0 in nu.linspace(-1.5*Z0, 1.5*Z0, 21):
+#     for z0 in [0.6*Z0, 0.8*Z0, 1.0*Z0, 1.2*Z0, 1.4*Z0]:
+#         args.append((I, coilRadius, coilZs, Z0, deltaT, 0.9*coilRadius, z0))
+#     trajectories = []
+#     with mp.Pool(processes=min(mp.cpu_count()-1, 50)) as pool:
+#         trajectories = pool.starmap(drawTrajectory, args)
+#     # with open('trajectories.pickle', 'wb') as file:
+#     #     pickle.dump(trajectories, file)
+#     # plot bs
+#     _los, _zs = nu.meshgrid(los, zs, indexing='ij')
+#     pl.quiver(_los/coilRadius, _zs/Z0, bs_lo, bs_z)
+#     # pl.quiver(_los/coilRadius, _zs/Z0, ms_lo, ms_z)
+#     # plot trajectories
+#     for trajectory in trajectories:
+#         pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='C0', linewidth=3)
+#         # pl.scatter(trajectory[:, 0], trajectory[:, 1], c='gray')
+#     pl.show()

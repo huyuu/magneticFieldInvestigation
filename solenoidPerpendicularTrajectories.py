@@ -33,7 +33,7 @@ class TrajectoryGenerator():
         self.coilRadius = 1.5e-2
         self.Z0 = self.coilRadius
         self.deltaT = 1e-5
-        N = 11
+        N = 21
         conductorWidth = 4e-3
         if N % 2 == 1:
             self.coilZs = nu.linspace(-(N//2) * conductorWidth, (N//2) * conductorWidth, N)
@@ -94,6 +94,7 @@ class TrajectoryGenerator():
         # generate all initial points [x0] and push them to raw queue.
         for z0 in self.z0s:
             master.lpush('rawQueue', pickle.dumps((self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, 0.9*self.coilRadius, z0)))
+        print('All {} tasks distributed. Waiting for slaves ...'.format(len(self.z0s)))
         # collect calculated trajectories
         trajectories = []
         for _ in range(len(self.z0s)):

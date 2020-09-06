@@ -123,13 +123,14 @@ class TrajectoryGenerator():
                 bs_lo[i, j] = bp[0]
                 bs_z[i, j] = bp[1]
         _los, _zs = nu.meshgrid(los, zs, indexing='ij')
-        pl.quiver(_los/self.coilRadius, _zs/self.Z0, bs_lo, bs_z)
+        pl.quiver(_los/self.coilRadius, _zs/self.Z0, bs_lo, bs_z, label=r'$B$ field')
         # plot trajectories
         for trajectory in trajectories:
             pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='C0', linewidth=3)
         pl.xlabel(r'Relative Radius Position $\rho$/coilRadius [-]', fontsize=22)
         pl.ylabel(r'Relative Z Position $z$/coilHeight [-]', fontsize=22)
         pl.tick_params(labelsize=16)
+        pl.legend(loc='upper left', fontsize=16)
         pl.show()
 
 

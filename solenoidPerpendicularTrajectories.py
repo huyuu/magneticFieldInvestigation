@@ -127,6 +127,7 @@ class TrajectoryGenerator():
     def runAsSlaveOnCluster(self, workerAmount=min(int(mp.cpu_count()*0.75), 50), rawQueue='rawQueue', cookedQueue='cookedQueue'):
         workerTank = []
         shouldStop = mp.Event()
+        shouldStop.clear()
         print(f'Slave node starts with {workerAmount} workers.')
         for _ in range(workerAmount):
             worker = mp.Process(target=computeTrajectoryInCluster, args=(rawQueue, cookedQueue, self.hostIP, self.hostPort, shouldStop))
@@ -135,6 +136,7 @@ class TrajectoryGenerator():
             x = input("Press 'q' to stop local workers: ")
             if x.lower() == 'q':
                 shouldStop.set()
+                break
             else:
                 continue
 

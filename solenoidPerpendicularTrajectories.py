@@ -31,8 +31,8 @@ class TrajectoryGenerator():
 
         self.I = 1.0
         self.coilRadius = 1.5e-2
-        self.deltaT = 1e-8
-        self.N = 21
+        self.deltaT = 1e-9
+        self.N = 31
         conductorWidth = 4e-3
         if self.N % 2 == 1:
             self.Z0 = (self.N//2) * conductorWidth
@@ -184,7 +184,7 @@ def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z):
     trajectory = []
     t = 0
     while 0.2 <= x[0]/coilRadius <= 0.9 and -1.5 <= x[1]/Z0 <= 1.5:
-        if sqrt((x[0]-lastX[0])**2 + (x[1]-lastX[1])**2) >= coilRadius/200:
+        if sqrt((x[0]-lastX[0])**2 + (x[1]-lastX[1])**2) >= coilRadius/500:
             trajectory.append([x[0]/coilRadius, x[1]/Z0])
             lastX = nu.array([x[0], x[1]])
         bp = nu.zeros(2)

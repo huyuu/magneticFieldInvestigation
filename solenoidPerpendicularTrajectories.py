@@ -141,8 +141,12 @@ class TrajectoryGenerator():
 
 def computeTrajectoryInCluster(rawQueue, cookedQueue, hostIP, hostPort, shouldStop):
     slave = redis.Redis(host=hostIP, port=hostPort)
-    slavesShouldStop = slave.get('terminateFlag').decode() == 'True'
-    while shouldStop.is_set() == False and slavesShouldStop == False :
+    while shouldStop.is_set() == False:
+        # check if terminated by master
+        terminate = slave.get('terminateFlag')
+        if terminate != None and terminate.decode() == 'True':
+            return
+        # continue calculation
         _, binaryArgs = slave.brpop(rawQueue)
         args = pickle.loads(binaryArgs)
         I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z = args

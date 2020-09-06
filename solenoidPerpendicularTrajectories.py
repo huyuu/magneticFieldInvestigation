@@ -41,7 +41,7 @@ class TrajectoryGenerator():
         self.coilZs = nu.linspace(-self.Z0, self.Z0, N)
         # initial points [x0]
         initPoints = 21
-        self.z0s = nu.linspace(-1.5*self.Z0, 1.5*self.Z0, initPoints)
+        self.z0s = nu.linspace(0, 1.4*self.Z0, initPoints)
 
 
     def run(self):
@@ -109,7 +109,7 @@ class TrajectoryGenerator():
         # plot bs
         points = 100
         los = nu.linspace(0.2*self.coilRadius, 0.9*self.coilRadius, points)
-        zs = nu.linspace(-1.5*self.Z0, 1.5*self.Z0, points)
+        zs = nu.linspace(0, 1.5*self.Z0, points)
         aphis = nu.zeros((points, points))
         bs_lo = nu.zeros((points, points))
         bs_z = nu.zeros((points, points))

@@ -55,10 +55,10 @@ class TrajectoryGenerator():
             except KeyboardInterrupt as e:
                 pass
             finally:
+                master = redis.Redis(host=self.hostIP, port=self.hostPort)
                 shouldTerminateWorkers = input('Should terminate all workers? [y/n]: ')
                 if shouldTerminateWorkers.lower() == 'y':
                     print('Terminating remote workers ...')
-                    master = redis.Redis(host=self.hostIP, port=self.hostPort)
                     master.set('terminateFlag', 'True')
                     while master.rpop('cookedQueue') != None:
                         pass

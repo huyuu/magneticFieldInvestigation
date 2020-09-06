@@ -32,7 +32,7 @@ class TrajectoryGenerator():
         self.I = 1.0
         self.coilRadius = 1.5e-2
         self.deltaT = 1e-8
-        self.N = 3
+        self.N = 21
         conductorWidth = 4e-3
         if self.N % 2 == 1:
             self.Z0 = (self.N//2) * conductorWidth
@@ -131,7 +131,7 @@ class TrajectoryGenerator():
         pl.xlabel(r'Relative Radius Position $\rho$/coilRadius [-]', fontsize=22)
         pl.ylabel(r'Relative Z Position $z$/coilHeight [-]', fontsize=22)
         pl.tick_params(labelsize=16)
-        pl.legend(loc='upper left', fontsize=16)
+        # pl.legend(loc='upper left', fontsize=16)
         pl.show()
 
 

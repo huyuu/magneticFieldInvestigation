@@ -31,14 +31,14 @@ class TrajectoryGenerator():
 
         self.I = 1.0
         self.coilRadius = 1.5e-2
-        self.Z0 = self.coilRadius
         self.deltaT = 1e-8
         N = 3
         conductorWidth = 4e-3
         if N % 2 == 1:
-            self.coilZs = nu.linspace(-(N//2) * conductorWidth, (N//2) * conductorWidth, N)
+            self.Z0 = (N//2) * conductorWidth
         else:
-            self.coilZs = nu.linspace( -(N//2 - 0.5) * conductorWidth, (N//2 - 0.5) * conductorWidth, N)
+            self.Z0 = (N//2 - 0.5) * conductorWidth
+        self.coilZs = nu.linspace(-Z0, Z0, N)
         # initial points [x0]
         initPoints = 21
         self.z0s = nu.linspace(-1.5*self.Z0, 1.5*self.Z0, initPoints)
@@ -109,7 +109,7 @@ class TrajectoryGenerator():
         # plot bs
         points = 100
         los = nu.linspace(0.2*self.coilRadius, 0.9*self.coilRadius, points)
-        zs = nu.linspace(-2*self.Z0, 2*self.Z0, points)
+        zs = nu.linspace(-1.5*self.Z0, 1.5*self.Z0, points)
         aphis = nu.zeros((points, points))
         bs_lo = nu.zeros((points, points))
         bs_z = nu.zeros((points, points))
@@ -134,6 +134,7 @@ class TrajectoryGenerator():
         workerTank = []
         shouldStop = mp.Event()
         shouldStop.clear()
+        slave = redis.Redis(host=self.hostIP, port=self.hostPort)
         print(f'Slave node starts with {workerAmount} workers.')
         for _ in range(workerAmount):
             worker = mp.Process(target=computeTrajectoryInCluster, args=(rawQueue, cookedQueue, self.hostIP, self.hostPort, shouldStop))
@@ -143,6 +144,10 @@ class TrajectoryGenerator():
             if x.lower() == 'q':
                 shouldStop.set()
                 break
+            # check remote flag
+            elif slave.get('terminateFlag') != None:
+                if slave.get('terminateFlag').decode() == 'True':
+                    break
         for worker in workerTank:
             worker.join()
 
@@ -151,8 +156,8 @@ def computeTrajectoryInCluster(rawQueue, cookedQueue, hostIP, hostPort, shouldSt
     slave = redis.Redis(host=hostIP, port=hostPort)
     while shouldStop.is_set() == False:
         # check if terminated by master
-        terminate = slave.get('terminateFlag')
-        if terminate != None and terminate.decode() == 'True':
+        terminateFlag = slave.get('terminateFlag')
+        if terminateFlag != None and terminateFlag.decode() == 'True':
             return
         # continue calculation
         # http://y0m0r.hateblo.jp/entry/20130320/1363786926, timeout=3sec
@@ -173,8 +178,8 @@ def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z):
     lastX = nu.array([x0_lo, x0_z])
     trajectory = []
     t = 0
-    while 0.2 <= x[0]/coilRadius <= 0.9 and -2 <= x[1]/Z0 <= 2:
-        if sqrt((x[0]-lastX[0])**2 + (x[1]-lastX[1])**2) >= coilRadius/100:
+    while 0.2 <= x[0]/coilRadius <= 0.9 and -1.5 <= x[1]/Z0 <= 1.5:
+        if sqrt((x[0]-lastX[0])**2 + (x[1]-lastX[1])**2) >= coilRadius/200:
             trajectory.append([x[0]/coilRadius, x[1]/Z0])
             lastX = nu.array([x[0], x[1]])
         bp = nu.zeros(2)
@@ -192,7 +197,6 @@ def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z):
 
 # Main
 
-
 if __name__ == '__main__':
     mp.freeze_support()
     trajectoryGenerator = TrajectoryGenerator()
@@ -203,15 +207,17 @@ if __name__ == '__main__':
 #     coilRadius = 1.5e-2
 #     coilZ = 0
 #     points = 100
-#     Z0 = coilRadius
+#     N = 3
+#     assert N % 2 == 1
+#     # Z0 = coilRadius
 #     I = 1.0
-#     deltaT = 1 * 1e-8
-#     N = 1
+#     deltaT = 1 * 1e-5
 #     conductorWidth = 4e-3
-#     coilZs = nu.linspace(-(N//2) * conductorWidth, (N//2) * conductorWidth, N)
+#     Z0 = N//2 * conductorWidth
+#     coilZs = nu.linspace(-Z0, Z0, N)
 #
 #     los = nu.linspace(0.2*coilRadius, 0.9*coilRadius, points)
-#     zs = nu.linspace(-2*Z0, 2*Z0, points)
+#     zs = nu.linspace(0, 1.5*Z0, points)
 #     omegas = nu.zeros((points, points))
 #     aphis = nu.zeros((points, points))
 #     bs_lo = nu.zeros((points, points))
@@ -235,7 +241,7 @@ if __name__ == '__main__':
 #     # compute trajectories
 #     args = []
 #     # for z0 in nu.linspace(-1.5*Z0, 1.5*Z0, 21):
-#     for z0 in [0, 0.2*Z0, 0.4*Z0, 0.6*Z0, 0.8*Z0, 1.0*Z0]:
+#     for z0 in [0.6*Z0, 0.8*Z0, 1.0*Z0, 1.2*Z0, 1.4*Z0]:
 #         args.append((I, coilRadius, coilZs, Z0, deltaT, 0.9*coilRadius, z0))
 #     trajectories = []
 #     with mp.Pool(processes=min(mp.cpu_count()-1, 50)) as pool:
@@ -244,8 +250,8 @@ if __name__ == '__main__':
 #     #     pickle.dump(trajectories, file)
 #     # plot bs
 #     _los, _zs = nu.meshgrid(los, zs, indexing='ij')
-#     # pl.quiver(_los/coilRadius, _zs/Z0, bs_lo, bs_z)
-#     pl.quiver(_los/coilRadius, _zs/Z0, ms_lo, ms_z)
+#     pl.quiver(_los/coilRadius, _zs/Z0, bs_lo, bs_z)
+#     # pl.quiver(_los/coilRadius, _zs/Z0, ms_lo, ms_z)
 #     # plot trajectories
 #     for trajectory in trajectories:
 #         # pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='gray')

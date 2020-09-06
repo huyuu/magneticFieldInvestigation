@@ -127,6 +127,9 @@ class TrajectoryGenerator():
         # plot trajectories
         for trajectory in trajectories:
             pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='C0', linewidth=3)
+        pl.xlabel(r'Relative Radius Position $\rho$/coilRadius [-]', fontsize=22)
+        pl.ylabel(r'Relative Z Position $z$/coilHeight [-]', fontsize=22)
+        pl.tick_params(labelsize=16)
         pl.show()
 
 

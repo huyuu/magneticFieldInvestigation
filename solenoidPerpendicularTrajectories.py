@@ -32,8 +32,8 @@ class TrajectoryGenerator():
         self.I = 1.0
         self.coilRadius = 1.5e-2
         self.Z0 = self.coilRadius
-        self.deltaT = 1e-6
-        N = 21
+        self.deltaT = 1e-8
+        N = 3
         conductorWidth = 4e-3
         if N % 2 == 1:
             self.coilZs = nu.linspace(-(N//2) * conductorWidth, (N//2) * conductorWidth, N)

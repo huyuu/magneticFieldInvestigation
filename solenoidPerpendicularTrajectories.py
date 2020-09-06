@@ -153,7 +153,10 @@ def computeTrajectoryInCluster(rawQueue, cookedQueue, hostIP, hostPort, shouldSt
         if terminate != None and terminate.decode() == 'True':
             return
         # continue calculation
-        _, binaryArgs = slave.brpop(rawQueue)
+        popResult = slave.brpop([rawQueue], 3)
+        if popResult == None:
+            continue
+        _, binaryArgs = popResult
         args = pickle.loads(binaryArgs)
         I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z = args
         trajectory = drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z)

@@ -117,7 +117,7 @@ class TrajectoryGenerator():
             for j, z in enumerate(zs):
                 # bp = BpFromScalarPotential(I, r, theta, coilRadius)
                 aphis[i, j] = Aphi(self.I, lo, z, self.coilRadius)
-                bp = nu.zeors(2)
+                bp = nu.zeros(2)
                 for coilZ in self.coilZs:
                     bp += BpFromVectorPotential(self.I, lo, z, self.coilRadius, coilZ)
                 bs_lo[i, j] = bp[0]

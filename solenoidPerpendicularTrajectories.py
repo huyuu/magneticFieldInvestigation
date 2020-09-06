@@ -32,7 +32,7 @@ class TrajectoryGenerator():
         self.I = 1.0
         self.coilRadius = 1.5e-2
         self.Z0 = self.coilRadius
-        self.deltaT = 1e-5
+        self.deltaT = 1e-6
         N = 21
         conductorWidth = 4e-3
         if N % 2 == 1:
@@ -194,7 +194,6 @@ if __name__ == '__main__':
     trajectoryGenerator.run()
 
 
-
 # if __name__ == '__main__':
 #     coilRadius = 1.5e-2
 #     coilZ = 0
@@ -202,6 +201,9 @@ if __name__ == '__main__':
 #     Z0 = coilRadius
 #     I = 1.0
 #     deltaT = 1e-5
+#     N = 21
+#     conductorWidth = 4e-3
+#     coilZs = nu.linspace(-(N//2) * conductorWidth, (N//2) * conductorWidth, N)
 #
 #     los = nu.linspace(0.2*coilRadius, 0.9*coilRadius, points)
 #     zs = nu.linspace(-2*Z0, 2*Z0, points)
@@ -222,16 +224,17 @@ if __name__ == '__main__':
 #     # compute trajectories
 #     args = []
 #     for z0 in nu.linspace(-1.5*Z0, 1.5*Z0, 21):
-#         args.append((I, coilRadius, Z0, deltaT, 0.9*coilRadius, z0))
+#         args.append((I, coilRadius, coilZs, Z0, deltaT, 0.9*coilRadius, z0))
 #     trajectories = []
 #     with mp.Pool(processes=min(mp.cpu_count()-1, 50)) as pool:
 #         trajectories = pool.starmap(drawTrajectory, args)
-#     # with open('trajectories.pickle', 'wb') as file:
-#     #     pickle.dump(trajectories, file)
+#     with open('trajectories.pickle', 'wb') as file:
+#         pickle.dump(trajectories, file)
 #     # plot bs
 #     _los, _zs = nu.meshgrid(los, zs, indexing='ij')
 #     pl.quiver(_los/coilRadius, _zs/Z0, bs_lo, bs_z)
 #     # plot trajectories
 #     for trajectory in trajectories:
-#         pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='gray')
+#         # pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='gray')
+#         pl.scatter(trajectory[:, 0], trajectory[:, 1], c='gray')
 #     pl.show()

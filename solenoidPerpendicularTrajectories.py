@@ -117,7 +117,9 @@ class TrajectoryGenerator():
             for j, z in enumerate(zs):
                 # bp = BpFromScalarPotential(I, r, theta, coilRadius)
                 aphis[i, j] = Aphi(self.I, lo, z, self.coilRadius)
-                bp = BpFromVectorPotential(self.I, lo, z, self.coilRadius)
+                bp = nu.zeors(2)
+                for coilZ in self.coilZs:
+                    bp += BpFromVectorPotential(self.I, lo, z, self.coilRadius, coilZ)
                 bs_lo[i, j] = bp[0]
                 bs_z[i, j] = bp[1]
         _los, _zs = nu.meshgrid(los, zs, indexing='ij')
@@ -180,7 +182,10 @@ def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z):
             bp_lo, bp_z = BpFromVectorPotential(I, x[0], x[1], coilRadius, coilZ)
             bp += nu.array([bp_lo, bp_z])
         m = nu.array([-bp[1], bp[0]]) / sqrt(bp[0]**2 + bp[1]**2)
+        # print(x[0]/coilRadius, x[1]/Z0, m)
         x += m * deltaT
+        # print(x[0]/coilRadius, x[1]/Z0, m)
+        # print('\n')
         t += deltaT
     return nu.array(trajectory)
 
@@ -200,8 +205,8 @@ if __name__ == '__main__':
 #     points = 100
 #     Z0 = coilRadius
 #     I = 1.0
-#     deltaT = 1e-5
-#     N = 21
+#     deltaT = 1 * 1e-8
+#     N = 1
 #     conductorWidth = 4e-3
 #     coilZs = nu.linspace(-(N//2) * conductorWidth, (N//2) * conductorWidth, N)
 #
@@ -211,6 +216,8 @@ if __name__ == '__main__':
 #     aphis = nu.zeros((points, points))
 #     bs_lo = nu.zeros((points, points))
 #     bs_z = nu.zeros((points, points))
+#     ms_lo = nu.zeros((points, points))
+#     ms_z = nu.zeros((points, points))
 #     for i, lo in enumerate(los):
 #         for j, z in enumerate(zs):
 #             r = sqrt(lo**2 + z**2)
@@ -218,21 +225,27 @@ if __name__ == '__main__':
 #             omegas[i, j] = Omega(I, r, theta, coilRadius)
 #             # bp = BpFromScalarPotential(I, r, theta, coilRadius)
 #             aphis[i, j] = Aphi(I, lo, z, coilRadius)
-#             bp = BpFromVectorPotential(I, lo, z, coilRadius)
+#             bp = nu.zeros(2)
+#             for coilZ in coilZs:
+#                 bp += BpFromVectorPotential(I, lo, z, coilRadius, coilZ)
 #             bs_lo[i, j] = bp[0]
 #             bs_z[i, j] = bp[1]
+#             ms_lo[i, j] = -bp[1]
+#             ms_z[i, j] = bp[0]
 #     # compute trajectories
 #     args = []
-#     for z0 in nu.linspace(-1.5*Z0, 1.5*Z0, 21):
+#     # for z0 in nu.linspace(-1.5*Z0, 1.5*Z0, 21):
+#     for z0 in [0, 0.2*Z0, 0.4*Z0, 0.6*Z0, 0.8*Z0, 1.0*Z0]:
 #         args.append((I, coilRadius, coilZs, Z0, deltaT, 0.9*coilRadius, z0))
 #     trajectories = []
 #     with mp.Pool(processes=min(mp.cpu_count()-1, 50)) as pool:
 #         trajectories = pool.starmap(drawTrajectory, args)
-#     with open('trajectories.pickle', 'wb') as file:
-#         pickle.dump(trajectories, file)
+#     # with open('trajectories.pickle', 'wb') as file:
+#     #     pickle.dump(trajectories, file)
 #     # plot bs
 #     _los, _zs = nu.meshgrid(los, zs, indexing='ij')
-#     pl.quiver(_los/coilRadius, _zs/Z0, bs_lo, bs_z)
+#     # pl.quiver(_los/coilRadius, _zs/Z0, bs_lo, bs_z)
+#     pl.quiver(_los/coilRadius, _zs/Z0, ms_lo, ms_z)
 #     # plot trajectories
 #     for trajectory in trajectories:
 #         # pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='gray')

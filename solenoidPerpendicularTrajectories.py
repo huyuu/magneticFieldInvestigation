@@ -40,9 +40,11 @@ class TrajectoryGenerator():
         else:
             self.Z0 = (self.N//2 - 0.5) * conductorWidth
         self.coilZs = nu.linspace(-self.Z0, self.Z0, self.N)
+        self.plotLowerBoundCoeff = 0.5
+        self.plotUpperBoundCoeff = 1.1
         # initial points [x0]
         initPoints = 41
-        self.z0s = nu.linspace(0, 1.4*self.Z0, initPoints)
+        self.z0s = nu.linspace(self.plotLowerBoundCoeff*self.Z0, self.plotUpperBoundCoeff*0.95*self.Z0, initPoints)
 
 
     def run(self):
@@ -112,32 +114,32 @@ class TrajectoryGenerator():
         with open('trajectories.pickle', 'wb') as file:
             pickle.dump(trajectories, file)
         # plot results
-        # plot bs
-        points = 100
-        los = nu.linspace(0.2*self.coilRadius, 0.9*self.coilRadius, points)
-        zs = nu.linspace(0, 1.5*self.Z0, points)
-        aphis = nu.zeros((points, points))
-        bs_lo = nu.zeros((points, points))
-        bs_z = nu.zeros((points, points))
-        for i, lo in enumerate(los):
-            for j, z in enumerate(zs):
-                # bp = BpFromScalarPotential(I, r, theta, coilRadius)
-                aphis[i, j] = Aphi(self.I, lo, z, self.coilRadius)
-                bp = nu.zeros(2)
-                for coilZ in self.coilZs:
-                    bp += BpFromVectorPotential(self.I, lo, z, self.coilRadius, coilZ)
-                bs_lo[i, j] = bp[0]
-                bs_z[i, j] = bp[1]
-        _los, _zs = nu.meshgrid(los, zs, indexing='ij')
-        pl.quiver(_los/self.coilRadius, _zs/self.Z0, bs_lo, bs_z, label=r'$B$ field')
+        # # plot bs
+        # points = 100
+        # los = nu.linspace(0.2*self.coilRadius, 0.9*self.coilRadius, points)
+        # zs = nu.linspace(self.plotLowerBoundCoeff*self.Z0, self.plotUpperBoundCoeff*self.Z0, points)
+        # aphis = nu.zeros((points, points))
+        # bs_lo = nu.zeros((points, points))
+        # bs_z = nu.zeros((points, points))
+        # for i, lo in enumerate(los):
+        #     for j, z in enumerate(zs):
+        #         # bp = BpFromScalarPotential(I, r, theta, coilRadius)
+        #         aphis[i, j] = Aphi(self.I, lo, z, self.coilRadius)
+        #         bp = nu.zeros(2)
+        #         for coilZ in self.coilZs:
+        #             bp += BpFromVectorPotential(self.I, lo, z, self.coilRadius, coilZ)
+        #         bs_lo[i, j] = bp[0]
+        #         bs_z[i, j] = bp[1]
+        # _los, _zs = nu.meshgrid(los, zs, indexing='ij')
+        # pl.quiver(_los/self.coilRadius, _zs/self.Z0, bs_lo, bs_z, label=r'$B$ field')
+        # pl.title(r'Coil $B$ Distribution ' + f'(N={self.N})', fontsize=24)
+        # pl.xlabel(r'Relative Radius Position $\rho$/coilRadius [-]', fontsize=22)
+        # pl.ylabel(r'Relative Z Position $z$/coilHeight [-]', fontsize=22)
+        # pl.tick_params(labelsize=16)
+        self.__plotBDistribution()
         # plot trajectories
         for trajectory in trajectories:
             pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='C0', linewidth=3)
-        pl.title(r'Coil $B$ Distribution ' + f'(N={self.N})', fontsize=24)
-        pl.xlabel(r'Relative Radius Position $\rho$/coilRadius [-]', fontsize=22)
-        pl.ylabel(r'Relative Z Position $z$/coilHeight [-]', fontsize=22)
-        pl.tick_params(labelsize=16)
-        # pl.legend(loc='upper left', fontsize=16)
         pl.show()
 
 
@@ -172,10 +174,18 @@ class TrajectoryGenerator():
         if x.lower() == 'y':
             with open('specificTrajectory.pickle', 'wb') as file:
                 pickle.dump(trajectory, file)
+        # plot trajectory
+        pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='C0', linewidth=3)
         # plot bs
+        self.__plotBDistribution()
+        pl.show()
+        return trajectory
+
+
+    def __plotBDistribution(self):
         points = 100
         los = nu.linspace(0.2*self.coilRadius, 0.9*self.coilRadius, points)
-        zs = nu.linspace(0, 1.5*self.Z0, points)
+        zs = nu.linspace(self.plotLowerBoundCoeff*self.Z0, self.plotUpperBoundCoeff*self.Z0, points)
         aphis = nu.zeros((points, points))
         bs_lo = nu.zeros((points, points))
         bs_z = nu.zeros((points, points))
@@ -190,15 +200,10 @@ class TrajectoryGenerator():
                 bs_z[i, j] = bp[1]
         _los, _zs = nu.meshgrid(los, zs, indexing='ij')
         pl.quiver(_los/self.coilRadius, _zs/self.Z0, bs_lo, bs_z, label=r'$B$ field')
-        # plot trajectories
-        pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='C0', linewidth=3)
         pl.title(r'Coil $B$ Distribution ' + f'(N={self.N})', fontsize=24)
         pl.xlabel(r'Relative Radius Position $\rho$/coilRadius [-]', fontsize=22)
         pl.ylabel(r'Relative Z Position $z$/coilHeight [-]', fontsize=22)
         pl.tick_params(labelsize=16)
-        # pl.legend(loc='upper left', fontsize=16)
-        pl.show()
-        return trajectory
 
 
 def computeTrajectoryInCluster(rawQueue, cookedQueue, hostIP, hostPort, shouldStop):
@@ -227,7 +232,7 @@ def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z):
     lastX = nu.array([x0_lo, x0_z])
     trajectory = []
     t = 0
-    while 0.2 <= x[0]/coilRadius <= 0.9 and -1.5 <= x[1]/Z0 <= 1.5:
+    while 0.2 <= x[0]/coilRadius <= 0.9 and self.plotLowerBoundCoeff <= x[1]/Z0 <= self.plotUpperBoundCoeff:
         if sqrt((x[0]-lastX[0])**2 + (x[1]-lastX[1])**2) >= coilRadius/1000:
             trajectory.append([x[0]/coilRadius, x[1]/Z0])
             lastX = nu.array([x[0], x[1]])

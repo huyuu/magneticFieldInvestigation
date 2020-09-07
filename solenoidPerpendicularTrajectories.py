@@ -96,7 +96,7 @@ class TrajectoryGenerator():
         # start main calculation
         # generate all initial points [x0] and push them to raw queue.
         for z0 in self.z0s:
-            master.lpush('rawQueue', pickle.dumps((self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, 0.9*self.coilRadius, z0)))
+            master.lpush('rawQueue', pickle.dumps((self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, 0.9*self.coilRadius, z0, self.plotLowerBoundCoeff, self.plotUpperBoundCoeff)))
         print('All {} tasks distributed. Waiting for slaves ...'.format(len(self.z0s)))
         # collect calculated trajectories
         trajectories = []
@@ -220,19 +220,19 @@ def computeTrajectoryInCluster(rawQueue, cookedQueue, hostIP, hostPort, shouldSt
             continue
         _, binaryArgs = popResult
         args = pickle.loads(binaryArgs)
-        # I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z = args
-        # trajectory = drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z)
-        trajectory = drawTrajectory(*args)
+        I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z, plotLowerBoundCoeff, plotUpperBoundCoeff = args
+        trajectory = drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z, plotLowerBoundCoeff, plotUpperBoundCoeff)
+        # trajectory = drawTrajectory(*args)
         binaryTrajectory = pickle.dumps(trajectory)
         slave.lpush(cookedQueue, binaryTrajectory)
 
 
-def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z):
+def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z, plotLowerBoundCoeff, plotUpperBoundCoeff):
     x = nu.array([x0_lo, x0_z])
     lastX = nu.array([x0_lo, x0_z])
     trajectory = []
     t = 0
-    while 0.2 <= x[0]/coilRadius <= 0.9 and self.plotLowerBoundCoeff <= x[1]/Z0 <= self.plotUpperBoundCoeff:
+    while 0.2 <= x[0]/coilRadius <= 0.9 and plotLowerBoundCoeff <= x[1]/Z0 <= plotUpperBoundCoeff:
         if sqrt((x[0]-lastX[0])**2 + (x[1]-lastX[1])**2) >= coilRadius/1000:
             trajectory.append([x[0]/coilRadius, x[1]/Z0])
             lastX = nu.array([x[0], x[1]])

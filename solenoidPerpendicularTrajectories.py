@@ -31,9 +31,10 @@ class TrajectoryGenerator():
 
         self.I = 1.0
         self.coilRadius = 1.5e-2
-        self.deltaT = 1e-9
+        self.deltaT = 1e-8
         self.N = 21
-        conductorWidth = 4e-3
+        # conductorWidth = 4e-3
+        conductorWidth = self.coilRadius/100
         if self.N % 2 == 1:
             self.Z0 = (self.N//2) * conductorWidth
         else:
@@ -253,12 +254,13 @@ if __name__ == '__main__':
 #     coilRadius = 1.5e-2
 #     coilZ = 0
 #     points = 100
-#     N = 3
+#     N = 21
 #     assert N % 2 == 1
 #     # Z0 = coilRadius
 #     I = 1.0
 #     deltaT = 1 * 1e-5
-#     conductorWidth = 4e-3
+#     # conductorWidth = 4e-3
+#     conductorWidth = coilRadius/100.0
 #     Z0 = N//2 * conductorWidth
 #     coilZs = nu.linspace(-Z0, Z0, N)
 #
@@ -302,4 +304,8 @@ if __name__ == '__main__':
 #     for trajectory in trajectories:
 #         pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='C0', linewidth=3)
 #         # pl.scatter(trajectory[:, 0], trajectory[:, 1], c='gray')
+#     pl.title(r'Coil $B$ Distribution ' + f'(N={N})', fontsize=24)
+#     pl.xlabel(r'Relative Radius Position $\rho$/coilRadius [-]', fontsize=22)
+#     pl.ylabel(r'Relative Z Position $z$/coilHeight [-]', fontsize=22)
+#     pl.tick_params(labelsize=16)
 #     pl.show()

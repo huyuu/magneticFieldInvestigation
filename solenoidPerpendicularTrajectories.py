@@ -33,8 +33,8 @@ class TrajectoryGenerator():
         self.coilRadius = 1.5e-2
         self.deltaT = 1e-8
         self.N = 21
-        # conductorWidth = 4e-3
-        conductorWidth = self.coilRadius/100
+        conductorWidth = 4e-3
+        # conductorWidth = self.coilRadius/100
         if self.N % 2 == 1:
             self.Z0 = (self.N//2) * conductorWidth
         else:
@@ -168,12 +168,15 @@ class TrajectoryGenerator():
     def getTrajectoryStartFrom(self, coeff):
         x0_lo = 0.9*self.coilRadius
         x0_z = coeff * self.Z0
-        trajectory = drawTrajectory(self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, x0_lo, x0_z)
+        trajectory = drawTrajectory(self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, x0_lo, x0_z, self.plotLowerBoundCoeff, self.plotUpperBoundCoeff)
         print(trajectory)
-        x = input('Should save trajectory? [y/n]: ')
+        x = input('Should save trajectory to csv? [y/n]: ')
         if x.lower() == 'y':
-            with open('specificTrajectory.pickle', 'wb') as file:
-                pickle.dump(trajectory, file)
+            realTrajectory = pd.DataFrame({
+                'r': trajectory[:, 0] * self.coilRadius,
+                'z': trajectory[:, 1] * self.Z0
+            })
+            realTrajectory.to_csv('specificTrajectory.csv', index=False)
         # plot trajectory
         pl.plot(trajectory[:, 0], trajectory[:, 1], '--', c='C0', linewidth=3)
         # plot bs
@@ -251,8 +254,8 @@ def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z, plotLowerBoun
 if __name__ == '__main__':
     mp.freeze_support()
     trajectoryGenerator = TrajectoryGenerator()
-    trajectoryGenerator.run()
-    # trajectoryGenerator.getTrajectoryStartFrom(coeff=1.0)
+    # trajectoryGenerator.run()
+    trajectoryGenerator.getTrajectoryStartFrom(coeff=1.0)
 
 
 # if __name__ == '__main__':

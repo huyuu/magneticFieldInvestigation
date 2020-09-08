@@ -31,7 +31,7 @@ class TrajectoryGenerator():
 
         self.I = 1.0
         self.coilRadius = 1.5e-2
-        self.deltaT = 1e-7
+        self.deltaT = 1e-8
         self.N = 50
         conductorWidth = 4e-3
         # conductorWidth = self.coilRadius/100

@@ -31,8 +31,8 @@ class TrajectoryGenerator():
 
         self.I = 1.0
         self.coilRadius = 1.5e-2
-        self.deltaT = 1e-8
-        self.N = 21
+        self.deltaT = 1e-7
+        self.N = 50
         conductorWidth = 4e-3
         # conductorWidth = self.coilRadius/100
         if self.N % 2 == 1:
@@ -255,7 +255,7 @@ if __name__ == '__main__':
     mp.freeze_support()
     trajectoryGenerator = TrajectoryGenerator()
     # trajectoryGenerator.run()
-    trajectoryGenerator.getTrajectoryStartFrom(coeff=1.0)
+    trajectoryGenerator.getTrajectoryStartFrom(coeff=0.9)
 
 
 # if __name__ == '__main__':

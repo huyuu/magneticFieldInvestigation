@@ -42,6 +42,8 @@ class TrajectoryGenerator():
         self.coilZs = nu.linspace(-self.Z0, self.Z0, self.N)
         self.plotLowerBoundCoeff = 0.5
         self.plotUpperBoundCoeff = 1.1
+        self.plotLeftBoundCoeff = 0.0
+        self.plotRightBoundCoeff = 0.95
         # initial points [x0]
         initPoints = 41
         self.z0s = nu.linspace(self.plotLowerBoundCoeff*self.Z0, self.plotUpperBoundCoeff*0.95*self.Z0, initPoints)
@@ -80,6 +82,9 @@ class TrajectoryGenerator():
             else:
                 self.runAsSlaveOnCluster(workerAmount=int(sys.argv[2]))
 
+        elif modeString.lower() == 'g':
+            self.getTrajectoryStartFrom(coeff=0.95)
+
 
     def runAsMasterOnCluster(self):
         master = redis.Redis(host=self.hostIP, port=self.hostPort)
@@ -96,7 +101,7 @@ class TrajectoryGenerator():
         # start main calculation
         # generate all initial points [x0] and push them to raw queue.
         for z0 in self.z0s:
-            master.lpush('rawQueue', pickle.dumps((self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, 0.9*self.coilRadius, z0, self.plotLowerBoundCoeff, self.plotUpperBoundCoeff)))
+            master.lpush('rawQueue', pickle.dumps((self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, self.plotRightBoundCoeff*self.coilRadius, z0, self.plotLowerBoundCoeff, self.plotUpperBoundCoeff, self.plotLeftBoundCoeff, self.plotRightBoundCoeff)))
         print('All {} tasks distributed. Waiting for slaves ...'.format(len(self.z0s)))
         # collect calculated trajectories
         trajectories = []
@@ -187,7 +192,7 @@ class TrajectoryGenerator():
 
     def __plotBDistribution(self):
         points = 100
-        los = nu.linspace(0.2*self.coilRadius, 0.9*self.coilRadius, points)
+        los = nu.linspace(self.plotLeftBoundCoeff*self.coilRadius, self.plotRightBoundCoeff*self.coilRadius, points)
         zs = nu.linspace(self.plotLowerBoundCoeff*self.Z0, self.plotUpperBoundCoeff*self.Z0, points)
         aphis = nu.zeros((points, points))
         bs_lo = nu.zeros((points, points))
@@ -223,19 +228,19 @@ def computeTrajectoryInCluster(rawQueue, cookedQueue, hostIP, hostPort, shouldSt
             continue
         _, binaryArgs = popResult
         args = pickle.loads(binaryArgs)
-        I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z, plotLowerBoundCoeff, plotUpperBoundCoeff = args
-        trajectory = drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z, plotLowerBoundCoeff, plotUpperBoundCoeff)
+        I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z, plotLowerBoundCoeff, plotUpperBoundCoeff, plotLeftBoundCoeff, plotRightBoundCoeff = args
+        trajectory = drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z, plotLowerBoundCoeff, plotUpperBoundCoeff, plotLeftBoundCoeff, plotRightBoundCoeff)
         # trajectory = drawTrajectory(*args)
         binaryTrajectory = pickle.dumps(trajectory)
         slave.lpush(cookedQueue, binaryTrajectory)
 
 
-def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z, plotLowerBoundCoeff, plotUpperBoundCoeff):
+def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z, plotLowerBoundCoeff, plotUpperBoundCoeff, plotLeftBoundCoeff, plotRightBoundCoeff):
     x = nu.array([x0_lo, x0_z])
     lastX = nu.array([x0_lo, x0_z])
     trajectory = []
     t = 0
-    while 0.2 <= x[0]/coilRadius <= 0.9 and plotLowerBoundCoeff <= x[1]/Z0 <= plotUpperBoundCoeff:
+    while plotLeftBoundCoeff <= x[0]/coilRadius <= plotRightBoundCoeff and plotLowerBoundCoeff <= x[1]/Z0 <= plotUpperBoundCoeff:
         if sqrt((x[0]-lastX[0])**2 + (x[1]-lastX[1])**2) >= coilRadius/1000:
             trajectory.append([x[0]/coilRadius, x[1]/Z0])
             lastX = nu.array([x[0], x[1]])
@@ -254,8 +259,7 @@ def drawTrajectory(I, coilRadius, coilZs, Z0, deltaT, x0_lo, x0_z, plotLowerBoun
 if __name__ == '__main__':
     mp.freeze_support()
     trajectoryGenerator = TrajectoryGenerator()
-    # trajectoryGenerator.run()
-    trajectoryGenerator.getTrajectoryStartFrom(coeff=0.9)
+    trajectoryGenerator.run()
 
 
 # if __name__ == '__main__':

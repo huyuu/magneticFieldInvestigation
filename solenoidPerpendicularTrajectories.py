@@ -171,9 +171,9 @@ class TrajectoryGenerator():
 
 
     def getTrajectoryStartFrom(self, coeff):
-        x0_lo = 0.9*self.coilRadius
+        x0_lo = self.plotRightBoundCoeff*self.coilRadius
         x0_z = coeff * self.Z0
-        trajectory = drawTrajectory(self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, x0_lo, x0_z, self.plotLowerBoundCoeff, self.plotUpperBoundCoeff)
+        trajectory = drawTrajectory(self.I, self.coilRadius, self.coilZs, self.Z0, self.deltaT, x0_lo, x0_z, self.plotLowerBoundCoeff, self.plotUpperBoundCoeff, self.plotLeftBoundCoeff, self.plotRightBoundCoeff)
         print(trajectory)
         x = input('Should save trajectory to csv? [y/n]: ')
         if x.lower() == 'y':
